@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>{{ icon('dashboard') }} 学习仪表盘</h1>
+    <p>欢迎回来，{{ user }}</p>
+</div>
+
+<div class="card-grid">
+    <!-- 状态概览卡片 -->
+    <div class="card stat-card">
+        <h3>{{ icon('sparkles') }} 综合正确率</h3>
+        <div class="stat-value">{{ status.accuracy }}%</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" style="width: {{ status.accuracy }}%"></div>
+        </div>
+    </div>
+
+    <a class="card stat-card is-clickable" href="/history">
+        <h3>{{ icon('book') }} 已做题数</h3>
+        <div class="stat-value">{{ status.total_questions }}</div>
+        <p>题 <span class="hint">(点击查看历史)</span></p>
+    </a>
+
+    <div class="card stat-card">
+        <h3>{{ icon('warning') }} 薄弱知识点</h3>
+        <div class="stack-sm">
+            {% if status.weak_points %}
+                {% for point in status.weak_points[:3] %}
+                <span class="tag tag-warning">{{ point.knowledge }} ({{ (point.accuracy * 100)|round(0) }}%)</span>
+                {% endfor %}
+            {% else %}
+                <p class="muted">暂无明显薄弱点</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="center-actions">
+    <a href="/recommend" class="btn-primary btn-lg">
+        {{ icon('sparkles') }} 开始智能推荐练习
+    </a>
+</div>
+
+<div class="center-actions-sm">
+    <a href="/reset" onclick="return confirm('确定要清空所有学习记录吗？此操作不可撤销。')" class="link-danger">
+        {{ icon('trash') }} 重置学习记录
+    </a>
+</div>
+{% endblock %}

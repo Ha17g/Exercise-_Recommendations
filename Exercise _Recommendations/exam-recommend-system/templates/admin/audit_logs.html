@@ -1,0 +1,88 @@
+{% extends "admin/base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block admin_content %}
+<h2 class="section-title">{{ icon('history') }} 操作日志</h2>
+
+<div class="search-bar">
+    <select id="actionFilter">
+        <option value="">全部操作</option>
+        <option value="CREATE_USER" {% if action_filter == 'CREATE_USER' %}selected{% endif %}>创建用户</option>
+        <option value="UPDATE_USER" {% if action_filter == 'UPDATE_USER' %}selected{% endif %}>更新用户</option>
+        <option value="DELETE_USER" {% if action_filter == 'DELETE_USER' %}selected{% endif %}>删除用户</option>
+        <option value="CREATE_QUESTION" {% if action_filter == 'CREATE_QUESTION' %}selected{% endif %}>创建题目</option>
+        <option value="UPDATE_QUESTION" {% if action_filter == 'UPDATE_QUESTION' %}selected{% endif %}>更新题目</option>
+        <option value="DELETE_QUESTION" {% if action_filter == 'DELETE_QUESTION' %}selected{% endif %}>删除题目</option>
+        <option value="BATCH_CREATE_USERS" {% if action_filter == 'BATCH_CREATE_USERS' %}selected{% endif %}>批量创建用户</option>
+        <option value="BATCH_DELETE_USERS" {% if action_filter == 'BATCH_DELETE_USERS' %}selected{% endif %}>批量删除用户</option>
+        <option value="BACKUP" {% if action_filter == 'BACKUP' %}selected{% endif %}>数据备份</option>
+        <option value="RESTORE" {% if action_filter == 'RESTORE' %}selected{% endif %}>数据恢复</option>
+    </select>
+    <input type="text" id="userIdFilter" placeholder="用户ID..." value="{{ user_id_filter }}">
+    <button class="btn btn-primary" onclick="searchLogs()">{{ icon('sparkles') }} 搜索</button>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>时间</th>
+                <th>操作人ID</th>
+                <th>操作类型</th>
+                <th>操作对象</th>
+                <th>对象ID</th>
+                <th>详情</th>
+                <th>IP地址</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.id }}</td>
+                <td>{{ log.created_at }}</td>
+                <td>{{ log.user_id }}</td>
+                <td><span class="tag tag-ai">{{ log.action }}</span></td>
+                <td>{{ log.target_type or '-' }}</td>
+                <td>{{ log.target_id or '-' }}</td>
+                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{ log.details or '-' }}</td>
+                <td>{{ log.ip_address or '-' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="table-empty">暂无日志记录</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="pagination">
+    {% if page > 1 %}
+    <a href="?page={{ page - 1 }}&action={{ action_filter }}&user_id={{ user_id_filter }}">上一页</a>
+    {% endif %}
+    <span>第 {{ page }} / {{ total_pages }} 页</span>
+    {% if page < total_pages %}
+    <a href="?page={{ page + 1 }}&action={{ action_filter }}&user_id={{ user_id_filter }}">下一页</a>
+    {% endif %}
+</div>
+
+<script>
+function searchLogs() {
+    const action = document.getElementById('actionFilter').value;
+    const userId = document.getElementById('userIdFilter').value.trim();
+    const params = new URLSearchParams();
+    params.set('page', '1');
+    if (action) params.set('action', action);
+    if (userId) params.set('user_id', userId);
+    window.location.href = '/admin/audit_logs?' + params.toString();
+}
+
+document.getElementById('userIdFilter').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        searchLogs();
+    }
+});
+</script>
+{% endblock %}

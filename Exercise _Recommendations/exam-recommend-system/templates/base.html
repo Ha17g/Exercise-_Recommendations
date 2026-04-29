@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+{% from "_icons.html" import icon %}
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>智能习题推荐系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% if session.get('username') %}
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">{{ icon('logo', 'icon-lg') }}<span>智习 - AI推荐</span></a>
+            <div class="nav-links">
+                <a href="/">{{ icon('home') }}<span>首页</span></a>
+                <a href="/question_bank">{{ icon('book') }}<span>题库</span></a>
+                <a href="/recommend">{{ icon('robot') }}<span>智能推荐</span></a>
+                <a href="/ai_chat">{{ icon('chat') }}<span>AI学习助手</span></a>
+                <a href="/stats">{{ icon('chart') }}<span>学习统计</span></a>
+                {% if session.get('role') == 'admin' %}
+                <a href="/admin">{{ icon('settings') }}<span>管理后台</span></a>
+                {% endif %}
+                <a href="/logout" class="btn-logout">{{ icon('logout') }}<span>退出</span></a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="main-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2026 智能习题推荐系统</p>
+    </footer>
+    
+    <script>window.__ICON_SPRITE__ = "{{ url_for('static', filename='icons/sprite.svg') }}";</script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

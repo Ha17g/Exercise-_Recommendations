@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <h1 class="page-title">{{ icon('settings') }} 管理后台</h1>
+
+    <div class="admin-nav">
+        <a href="/admin" class="admin-nav-item {% if active_tab == 'dashboard' %}active{% endif %}">
+            {{ icon('dashboard') }} 仪表盘
+        </a>
+        <a href="/admin/users" class="admin-nav-item {% if active_tab == 'users' %}active{% endif %}">
+            {{ icon('users') }} 用户管理
+        </a>
+        <a href="/admin/questions" class="admin-nav-item {% if active_tab == 'questions' %}active{% endif %}">
+            {{ icon('book') }} 题库管理
+        </a>
+        <a href="/admin/audit_logs" class="admin-nav-item {% if active_tab == 'logs' %}active{% endif %}">
+            {{ icon('history') }} 操作日志
+        </a>
+        <a href="/admin/backup" class="admin-nav-item {% if active_tab == 'backup' %}active{% endif %}">
+            {{ icon('database') }} 数据备份
+        </a>
+    </div>
+
+    {% block admin_content %}{% endblock %}
+</div>
+{% endblock %}

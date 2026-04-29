@@ -1,0 +1,142 @@
+{% extends "admin/base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block admin_content %}
+<h2 class="section-title">{{ icon('database') }} 数据备份与恢复</h2>
+
+<div class="stat-cards">
+    <div class="stat-card">
+        <div class="stat-icon">{{ icon('database') }}</div>
+        <div class="value">{{ backup_count }}</div>
+        <div class="label">备份文件数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-success">{{ icon('history') }}</div>
+        <div class="value">{{ latest_backup or '无' }}</div>
+        <div class="label">最新备份时间</div>
+    </div>
+</div>
+
+<div class="card stack">
+    <h3 class="section-title">{{ icon('database') }} 创建备份</h3>
+    <p class="muted">
+        备份将包含所有用户数据、题目数据和答题记录。建议定期备份以防止数据丢失。
+    </p>
+    <button class="btn btn-success" onclick="createBackup()">
+        {{ icon('database') }} 创建新备份
+    </button>
+</div>
+
+<div class="card stack">
+    <h3 class="section-title">{{ icon('history') }} 恢复数据</h3>
+    <p class="muted">
+        选择一个备份文件进行恢复。注意：这将覆盖当前所有数据！
+    </p>
+    <div class="form-group">
+        <select id="backupSelect" class="form-control">
+            <option value="">请选择备份文件...</option>
+            {% for backup in backups %}
+            <option value="{{ backup.filename }}">{{ backup.filename }} ({{ backup.size }}KB, {{ backup.created_at }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button class="btn btn-warning" onclick="restoreBackup()">
+        {{ icon('history') }} 恢复选中的备份
+    </button>
+</div>
+
+<div class="card">
+    <h3 class="section-title">{{ icon('trash') }} 管理备份文件</h3>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>文件名</th>
+                    <th>大小</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for backup in backups %}
+                <tr>
+                    <td>{{ backup.filename }}</td>
+                    <td>{{ backup.size }} KB</td>
+                    <td>{{ backup.created_at }}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="downloadBackup('{{ backup.filename }}')">
+                            {{ icon('database') }} 下载
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteBackup('{{ backup.filename }}')">
+                            {{ icon('trash') }} 删除
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="table-empty">暂无备份文件</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="message" style="display: none; margin-top: 20px;" class="alert"></div>
+
+<script>
+function showMessage(text, isError) {
+    const el = document.getElementById('message');
+    el.textContent = text;
+    el.style.display = 'block';
+    el.className = isError ? 'alert alert-error' : 'alert alert-success';
+}
+
+function createBackup() {
+    if (!confirm('确定要创建新的备份吗？')) return;
+    fetch('/api/admin/backup', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 200) {
+                showMessage('备份创建成功: ' + data.data.filename, false);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showMessage('备份失败: ' + data.error, true);
+            }
+        });
+}
+
+function restoreBackup() {
+    const sel = document.getElementById('backupSelect');
+    if (!sel.value) { alert('请选择备份文件'); return; }
+    if (!confirm('警告：这将覆盖当前所有数据！确定要恢复吗？')) return;
+    fetch('/api/admin/backup/' + encodeURIComponent(sel.value), { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 200) {
+                showMessage('数据恢复成功', false);
+            } else {
+                showMessage('恢复失败: ' + data.error, true);
+            }
+        });
+}
+
+function downloadBackup(filename) {
+    window.location.href = '/api/admin/backup/download/' + encodeURIComponent(filename);
+}
+
+function deleteBackup(filename) {
+    if (!confirm('确定要删除备份 ' + filename + ' 吗？')) return;
+    fetch('/api/admin/backup/' + encodeURIComponent(filename), { method: 'DELETE' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 200) {
+                showMessage('删除成功', false);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showMessage('删除失败: ' + data.error, true);
+            }
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "admin/base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block admin_content %}
+<h2 class="section-title">{{ icon('dashboard') }} 数据概览</h2>
+
+<div class="stat-cards">
+    <div class="stat-card">
+        <div class="stat-icon">{{ icon('users') }}</div>
+        <div class="value">{{ stats.total_users }}</div>
+        <div class="label">用户总数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-success">{{ icon('book') }}</div>
+        <div class="value">{{ stats.total_questions }}</div>
+        <div class="label">题目总数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-danger">{{ icon('sparkles') }}</div>
+        <div class="value">{{ stats.total_records }}</div>
+        <div class="label">答题记录</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">{{ icon('chart') }}</div>
+        <div class="value">{{ stats.avg_accuracy }}%</div>
+        <div class="label">平均正确率</div>
+    </div>
+</div>
+
+<h2 class="section-title">{{ icon('sparkles') }} 热门题目</h2>
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>题号</th>
+                <th>题目内容</th>
+                <th>学科</th>
+                <th>难度</th>
+                <th>被做次数</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q in hot_questions %}
+            <tr>
+                <td>#{{ q.id }}</td>
+                <td>{{ q.question[:50] }}...</td>
+                <td>{{ q.subject or '通用' }}</td>
+                <td>{{ q.difficulty or '中等' }}</td>
+                <td>{{ q.times_done }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="table-empty">暂无数据</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2 class="section-title">{{ icon('history') }} 最近活动</h2>
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>时间</th>
+                <th>用户</th>
+                <th>操作</th>
+                <th>详情</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in recent_logs %}
+            <tr>
+                <td>{{ log.created_at }}</td>
+                <td>{{ log.username or log.user_id }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ log.details }}</td>
+                <td>{{ log.ip_address or '-' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="table-empty">暂无日志</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

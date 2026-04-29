@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>{{ icon('history') }} 做题历史记录</h1>
+</div>
+
+<!-- 筛选区域 -->
+<div class="filter-card card">
+    <form action="/history" method="GET" class="filter-form filter-form-start">
+        <div class="filter-item">
+            <label>学科：</label>
+            <select name="subject" class="form-select">
+                <option value="全部" {% if subject == '全部' %}selected{% endif %}>全部</option>
+                <option value="数学" {% if subject == '数学' %}selected{% endif %}>数学</option>
+                <option value="语文" {% if subject == '语文' %}selected{% endif %}>语文</option>
+                <option value="英语" {% if subject == '英语' %}selected{% endif %}>英语</option>
+                <option value="物理" {% if subject == '物理' %}selected{% endif %}>物理</option>
+                <option value="化学" {% if subject == '化学' %}selected{% endif %}>化学</option>
+                <option value="计算机" {% if subject == '计算机' %}selected{% endif %}>计算机</option>
+                <option value="历史" {% if subject == '历史' %}selected{% endif %}>历史</option>
+                <option value="地理" {% if subject == '地理' %}selected{% endif %}>地理</option>
+            </select>
+        </div>
+        
+        <div class="filter-item">
+            <label>年级：</label>
+            <select name="grade" class="form-select">
+                <option value="全部" {% if grade == '全部' %}selected{% endif %}>全部</option>
+                <option value="小学" {% if grade == '小学' %}selected{% endif %}>小学</option>
+                <option value="初中" {% if grade == '初中' %}selected{% endif %}>初中</option>
+                <option value="高中" {% if grade == '高中' %}selected{% endif %}>高中</option>
+                <option value="大学" {% if grade == '大学' %}selected{% endif %}>大学</option>
+            </select>
+        </div>
+
+        <div class="filter-item">
+            <label>难度：</label>
+            <select name="difficulty" class="form-select">
+                <option value="全部" {% if difficulty == '全部' %}selected{% endif %}>全部</option>
+                <option value="简单" {% if difficulty == '简单' %}selected{% endif %}>简单</option>
+                <option value="中等" {% if difficulty == '中等' %}selected{% endif %}>中等</option>
+                <option value="困难" {% if difficulty == '困难' %}selected{% endif %}>困难</option>
+            </select>
+        </div>
+
+        <div class="filter-item filter-item-end">
+            <input type="text" name="search" placeholder="搜索题号或内容..." value="{{ search }}" class="form-input">
+            <button type="submit" class="btn-primary">
+                {{ icon('sparkles') }} 搜索
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- 题目列表 -->
+<div class="card table-card">
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th class="col-id">题号</th>
+                <th>题目</th>
+                <th class="col-sm">学科</th>
+                <th class="col-xs">难度</th>
+                <th class="col-sm">做题结果</th>
+                <th class="col-md">时间</th>
+                <th class="col-xs">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q in questions %}
+            <tr>
+                <td>#{{ q.id }}</td>
+                <td>
+                    <div class="cell-title">{{ q.question }}</div>
+                    <div class="cell-meta">
+                        <span class="pill">{{ q.knowledge }}</span>
+                    </div>
+                </td>
+                <td>{{ q.get('subject', '其他') }}</td>
+                <td>
+                    <span class="tag {% if q.difficulty == '简单' %}tag-success{% elif q.difficulty == '困难' %}tag-danger{% else %}tag-warning{% endif %}">
+                        {{ q.difficulty }}
+                    </span>
+                </td>
+                <td>
+                    {% if q.user_correct %}
+                    <span class="result result-success">{{ icon('check') }} 正确</span>
+                    {% else %}
+                    <span class="result result-danger">{{ icon('warning') }} 错误</span>
+                    {% endif %}
+                </td>
+                <td class="muted">{{ q.user_time }}</td>
+                <td>
+                    <a href="/question/{{ q.id }}?from=history" class="btn-primary btn-sm">重做</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="table-empty">
+                    暂无相关记录
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

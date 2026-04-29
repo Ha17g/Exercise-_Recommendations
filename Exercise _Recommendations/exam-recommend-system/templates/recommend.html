@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block content %}
+<div class="recommend-wrapper">
+    <div class="recommend-header">
+        <h1>{{ icon('sparkles') }} AI 智能推荐</h1>
+
+        <!-- 筛选区域 -->
+        <div class="filter-card card">
+            <form id="recommendForm" action="/recommend" method="GET" class="filter-form">
+                <input type="hidden" name="refresh" value="true">
+                <div class="filter-item">
+                    <label>{{ icon('book') }} 学科：</label>
+                    <select name="subject" id="subjectSelect" class="form-select">
+                        <option value="全部" {% if current_subject == '全部' %}selected{% endif %}>全部</option>
+                        <option value="数学" {% if current_subject == '数学' %}selected{% endif %}>数学</option>
+                        <option value="语文" {% if current_subject == '语文' %}selected{% endif %}>语文</option>
+                        <option value="英语" {% if current_subject == '英语' %}selected{% endif %}>英语</option>
+                        <option value="物理" {% if current_subject == '物理' %}selected{% endif %}>物理</option>
+                        <option value="化学" {% if current_subject == '化学' %}selected{% endif %}>化学</option>
+                        <option value="计算机" {% if current_subject == '计算机' %}selected{% endif %}>计算机</option>
+                        <option value="历史" {% if current_subject == '历史' %}selected{% endif %}>历史</option>
+                        <option value="地理" {% if current_subject == '地理' %}selected{% endif %}>地理</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>{{ icon('logo') }} 年级：</label>
+                    <select name="grade" id="gradeSelect" class="form-select">
+                        <option value="全部" {% if current_grade == '全部' %}selected{% endif %}>全部</option>
+                        <option value="小学" {% if current_grade == '小学' %}selected{% endif %}>小学</option>
+                        <option value="初中" {% if current_grade == '初中' %}selected{% endif %}>初中</option>
+                        <option value="高中" {% if current_grade == '高中' %}selected{% endif %}>高中</option>
+                        <option value="大学" {% if current_grade == '大学' %}selected{% endif %}>大学</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary" id="generateBtn">
+                    {{ icon('sparkles') }} 生成推荐
+                </button>
+            </form>
+        </div>
+
+        {% if questions and questions|length > 0 %}
+        <div class="ai-insight">
+            <div class="ai-avatar">
+                {{ icon('robot') }}
+            </div>
+            <div class="ai-message">
+                <p class="ai-reason">{{ reason }}</p>
+                {% if base_reason %}
+                <small class="muted">{{ base_reason }}</small>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="question-list">
+        {% if questions and questions|length > 0 %}
+            {% for q in questions %}
+            <a class="card question-card" href="/question/{{ q.id }}?from=recommend">
+                <div class="card-header">
+                    <span class="tag tag-knowledge">{{ q.knowledge or '综合' }}</span>
+                    <span class="tag {% if q.difficulty == '简单' %}tag-success{% elif q.difficulty == '困难' %}tag-danger{% else %}tag-warning{% endif %}">
+                        {{ q.difficulty or '中等' }}
+                    </span>
+                    {% if q.get('is_ai_generated') %}
+                    <span class="tag tag-ai">{{ icon('sparkles') }} AI生成</span>
+                    {% endif %}
+                </div>
+                <h3>{{ q.question }}</h3>
+                <div class="card-footer">
+                    <span class="muted">{{ q.subject or '通用' }} | {{ q.grade or '通用' }}</span>
+                    <span class="btn-do">{{ icon('chevron-right', 'rtl-flip') }} 开始练习</span>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+        <div class="card empty-state">
+            <div class="empty-content">
+                <div class="empty-icon">{{ icon('sparkles', 'icon-xxl') }}</div>
+                <h3>准备开始智能推荐</h3>
+                <p class="muted">请在上方选择想要练习的学科与年级，然后点击“生成推荐”获取个性化练习题目。</p>
+                <div class="feature-grid">
+                    <div class="feature-tile">
+                        <div class="feature-icon" aria-hidden="true">{{ icon('user') }}</div>
+                        <div class="feature-text">个性化分析</div>
+                    </div>
+                    <div class="feature-tile">
+                        <div class="feature-icon" aria-hidden="true">{{ icon('robot') }}</div>
+                        <div class="feature-text">AI 智能出题</div>
+                    </div>
+                    <div class="feature-tile">
+                        <div class="feature-icon" aria-hidden="true">{{ icon('chart') }}</div>
+                        <div class="feature-text">薄弱点提升</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

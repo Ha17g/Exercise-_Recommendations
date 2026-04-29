@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-mark">{{ icon('logo', 'icon-xl') }}</div>
+            <h2>用户登录</h2>
+        </div>
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label for="username">{{ icon('user') }} 用户名</label>
+                <input type="text" id="username" name="username" placeholder="请输入用户名" value="{{ username or '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="password">{{ icon('lock') }} 密码</label>
+                <input type="password" id="password" name="password" placeholder="请输入密码" value="{{ password or '' }}" required>
+            </div>
+            {% if error %}
+            <div class="alert alert-error" role="alert">{{ icon('warning') }}<span>{{ error }}</span></div>
+            {% endif %}
+            <button type="submit" class="btn-primary btn-block">
+                {{ icon('login') }} 立即登录
+            </button>
+        </form>
+        <div class="auth-footer">
+            <p>还没有账号？ <a href="/register">立即注册</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

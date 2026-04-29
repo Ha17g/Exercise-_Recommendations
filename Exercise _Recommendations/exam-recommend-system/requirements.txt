@@ -1,0 +1,10 @@
+flask
+requests
+PyJWT
+numpy
+faiss-cpu
+sentence-transformers
+psycopg2-binary
+pymysql
+
+pytest

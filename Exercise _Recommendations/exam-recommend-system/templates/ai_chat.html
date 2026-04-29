@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block content %}
+<div class="chat-container">
+    
+    <!-- 聊天记录区域 -->
+    <div id="chat-history" class="chat-history" aria-live="polite">
+        <!-- 初始消息在JS中加载 -->
+    </div>
+
+    <!-- 输入区域 -->
+    <div class="chat-input-area">
+        <div class="chat-input-wrapper">
+            <div class="chat-input-row">
+                <input type="text" id="user-input" class="chat-input" placeholder="输入你的问题，例如：我应该重点学习什么？">
+                <button type="button" onclick="sendMessage()" class="btn-primary chat-send">
+                    {{ icon('send') }} 发送
+                </button>
+            </div>
+            <div class="quick-questions" role="list">
+                <span class="quick-question" role="button" tabindex="0" onclick="setQuestion('我哪些知识点比较薄弱？')">我哪些知识点比较薄弱？</span>
+                <span class="quick-question" role="button" tabindex="0" onclick="setQuestion('推荐一些练习方法')">推荐一些练习方法</span>
+                <span class="quick-question" role="button" tabindex="0" onclick="setQuestion('接下来的学习计划建议')">接下来的学习计划建议</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 页面加载时给body添加特殊类
+document.body.classList.add('ai-chat-page');
+
+// 页面卸载时移除（防止影响其他页面）
+window.addEventListener('beforeunload', () => {
+    document.body.classList.remove('ai-chat-page');
+});
+
+// 加载历史记录
+document.addEventListener('DOMContentLoaded', () => {
+    // 使用用户名作为Key的一部分，实现多用户隔离
+    const username = "{{ session.get('username', 'guest') }}";
+    const storageKey = `ai_chat_history_${username}`;
+    
+    const history = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const chatHistoryDiv = document.getElementById('chat-history');
+    
+    if (history.length === 0) {
+        // 默认欢迎语
+        addMessageUI('你好！我是你的AI学习助手。我已经分析了你的做题记录，有什么可以帮你的吗？', 'ai');
+    } else {
+        history.forEach(msg => {
+            addMessageUI(msg.content, msg.role);
+        });
+    }
+});
+
+function iconHtml(name, extraClass = '') {
+    const href = `${window.__ICON_SPRITE__}#${name}`;
+    const cls = extraClass ? `icon ${extraClass}` : 'icon';
+    return `<svg class="${cls}" aria-hidden="true" focusable="false"><use href="${href}"></use></svg>`;
+}
+
+document.addEventListener('keydown', (e) => {
+    const el = e.target;
+    if (!el || !el.classList || !el.classList.contains('quick-question')) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
+    }
+});
+
+function setQuestion(text) {
+    document.getElementById('user-input').value = text;
+    sendMessage();
+}
+
+function sendMessage() {
+    const input = document.getElementById('user-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    // 1. 显示并保存用户消息
+    addMessage(message, 'user');
+    input.value = '';
+
+    // 2. 显示加载中
+    const loadingId = addLoading();
+
+    // 3. 发送请求
+    fetch('/ai_chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+    })
+    .then(res => res.json())
+    .then(data => {
+        removeMessage(loadingId);
+        // 4. 显示并保存AI回复
+        addMessage(data.reply, 'ai');
+    })
+    .catch(err => {
+        removeMessage(loadingId);
+        addMessage('抱歉，网络出了点小差错，请稍后再试。', 'ai');
+    });
+}
+
+function addMessage(text, role) {
+    // UI显示
+    addMessageUI(text, role);
+    
+    // 保存到localStorage (带用户名Key)
+    const username = "{{ session.get('username', 'guest') }}";
+    const storageKey = `ai_chat_history_${username}`;
+    
+    const history = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    history.push({ role: role, content: text });
+    localStorage.setItem(storageKey, JSON.stringify(history));
+}
+
+function addMessageUI(text, role) {
+    const historyDiv = document.getElementById('chat-history');
+    const div = document.createElement('div');
+    div.className = `message ${role === 'ai' ? 'ai-message' : 'user-message'}`;
+    div.innerHTML = `
+        <div class="avatar">${role === 'ai' ? iconHtml('robot') : iconHtml('user')}</div>
+        <div class="content">${text.replace(/\n/g, '<br>')}</div>
+    `;
+    historyDiv.appendChild(div);
+    historyDiv.scrollTop = historyDiv.scrollHeight;
+}
+
+function addLoading() {
+    const historyDiv = document.getElementById('chat-history');
+    const id = 'loading-' + Date.now();
+    const div = document.createElement('div');
+    div.id = id;
+    div.className = 'message ai-message';
+    div.innerHTML = `
+        <div class="avatar">${iconHtml('robot')}</div>
+        <div class="content">${iconHtml('spinner', 'spin')} 思考中...</div>
+    `;
+    historyDiv.appendChild(div);
+    historyDiv.scrollTop = historyDiv.scrollHeight;
+    return id;
+}
+
+function removeMessage(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+}
+
+// 支持回车发送
+document.getElementById('user-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>{{ icon('chart') }} 学习统计</h1>
+</div>
+
+<div class="card-grid">
+    <!-- 核心指标 -->
+    <div class="card stat-card">
+        <div class="stat-icon">{{ icon('book') }}</div>
+        <h3>总做题数</h3>
+        <div class="stat-value">{{ status.total_questions }}</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-icon stat-icon-success">{{ icon('check') }}</div>
+        <h3>正确率</h3>
+        <div class="stat-value">{{ status.accuracy }}%</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="section-title">{{ icon('sparkles') }} 学科掌握情况</h2>
+    <div class="knowledge-bars">
+        {% for point in status.subject_stats %}
+        <div class="knowledge-item">
+            <div class="knowledge-label">{{ point.subject }}</div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: {{ point.accuracy * 100 }}%; background-color: {% if point.accuracy < 0.6 %}#E74C3C{% elif point.accuracy < 0.8 %}#F5A623{% else %}#2ECC71{% endif %};"></div>
+            </div>
+            <div class="progress-value">{{ (point.accuracy * 100)|round(0) }}%</div>
+        </div>
+        {% else %}
+        <div class="empty-inline">
+            暂无数据，请先完成一些练习！
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="section-title">{{ icon('sparkles') }} 知识点细分掌握</h2>
+    <div class="knowledge-bars">
+        {% for point in status.weak_points %}
+        <div class="knowledge-item">
+            <div class="knowledge-label">{{ point.knowledge }}</div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: {{ point.accuracy * 100 }}%; background-color: {% if point.accuracy < 0.6 %}#E74C3C{% elif point.accuracy < 0.8 %}#F5A623{% else %}#2ECC71{% endif %};"></div>
+            </div>
+            <div class="progress-value">{{ (point.accuracy * 100)|round(0) }}%</div>
+        </div>
+        {% else %}
+        <div class="empty-inline">
+            暂无数据，请先完成一些练习！
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="section-title">{{ icon('history') }} 最近做题记录</h2>
+    <div class="table-scroll">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>时间</th>
+                    <th>题目ID</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records[-10:]|reverse %}
+                <tr>
+                    <td>{{ record.time }}</td>
+                    <td>#{{ record.question_id }}</td>
+                    <td>
+                        {% if record.correct %}
+                        <span class="result result-success">{{ icon('check') }} 正确</span>
+                        {% else %}
+                        <span class="result result-danger">{{ icon('warning') }} 错误</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="table-empty">暂无记录</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

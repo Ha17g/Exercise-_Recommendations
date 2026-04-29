@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block content %}
+<div class="question-container">
+    <div class="card">
+        <div class="question-header">
+            <span class="tag tag-knowledge">{{ question.knowledge }}</span>
+            <span class="tag tag-difficulty">{{ question.difficulty }}</span>
+        </div>
+        
+        <div class="question-body">
+            <h2>{{ question.question }}</h2>
+            
+            <div class="options-list">
+                {% for option in question.options %}
+                <div class="option-item" role="button" tabindex="0" onclick="selectOption(this, '{{ option }}')">
+                    <span class="option-text">{{ option }}</span>
+                    <span class="check-icon" aria-hidden="true">{{ icon('check') }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="actions">
+                <button id="submitBtn" class="btn-primary" onclick="submitAnswer({{ question.id }})" disabled>
+                    {{ icon('send') }} 提交答案
+                </button>
+                {% if from_page == 'bank' %}
+                <a href="/question_bank" class="btn-secondary">
+                    {{ icon('book') }} 返回题库
+                </a>
+                {% elif from_page == 'history' %}
+                <a href="/history" class="btn-secondary">
+                    {{ icon('history') }} 返回历史
+                </a>
+                {% else %}
+                <a href="/recommend" class="btn-secondary">
+                    {{ icon('sparkles') }} 返回列表
+                </a>
+                {% endif %}
+            </div>
+            
+            <div id="result-feedback" class="feedback-card" hidden>
+                <h3 id="feedback-title"></h3>
+                <p id="feedback-text"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedAnswer = null;
+
+    function iconHtml(name, extraClass = '') {
+        const href = `${window.__ICON_SPRITE__}#${name}`;
+        const cls = extraClass ? `icon ${extraClass}` : 'icon';
+        return `<svg class="${cls}" aria-hidden="true" focusable="false"><use href="${href}"></use></svg>`;
+    }
+
+    function selectOption(element, answer) {
+        // 清除其他选中状态
+        document.querySelectorAll('.option-item').forEach(el => {
+            el.classList.remove('selected');
+            el.querySelector('.check-icon').style.opacity = '0';
+        });
+        // 选中当前项
+        element.classList.add('selected');
+        element.querySelector('.check-icon').style.opacity = '1';
+        selectedAnswer = answer;
+        // 启用提交按钮
+        document.getElementById('submitBtn').disabled = false;
+    }
+
+    function submitAnswer(questionId) {
+        if (!selectedAnswer) return;
+        
+        fetch('/submit_answer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                question_id: questionId,
+                answer: selectedAnswer
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            const feedback = document.getElementById('result-feedback');
+            const title = document.getElementById('feedback-title');
+            const text = document.getElementById('feedback-text');
+            
+            feedback.hidden = false;
+            
+            if (data.correct) {
+                feedback.className = 'feedback-card success';
+                title.innerHTML = `${iconHtml('check')} 回答正确！`;
+                document.querySelector('.option-item.selected').classList.add('correct');
+            } else {
+                feedback.className = 'feedback-card error';
+                title.innerHTML = `${iconHtml('warning')} 回答错误`;
+                document.querySelector('.option-item.selected').classList.add('wrong');
+            }
+            
+            text.innerText = data.explanation;
+            
+            // 禁用选项和按钮
+            document.querySelectorAll('.option-item').forEach(el => el.style.pointerEvents = 'none');
+            document.getElementById('submitBtn').disabled = true;
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        const el = e.target;
+        if (!el || !el.classList || !el.classList.contains('option-item')) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            el.click();
+        }
+    });
+</script>
+{% endblock %}

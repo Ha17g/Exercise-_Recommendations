@@ -3,7 +3,7 @@ import json
 import re
 
 # DeepSeek API配置
-API_KEY = "sk-1fbc2b1efa1a48acaf0e1cb5048ecb37"
+API_KEY = ""
 API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 def call_deepseek(prompt, system_prompt="你是一个智能助教。"):

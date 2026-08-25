@@ -65,6 +65,9 @@ python app.py
 
 ### 管理员账号
 
+管理员账号:admin
+密码：password123
+
 注册的新用户默认 `role=user`。如需使用管理后台，可将某个用户提升为管理员：
 
 - SQLite 示例：
